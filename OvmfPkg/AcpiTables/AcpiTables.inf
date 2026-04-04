@@ -30,6 +30,7 @@
   Ssdt.asl
 
   TpmSsdt.asl
+  Tpm2.aslc
 
 [Packages]
   MdePkg/MdePkg.dec
