@@ -29,6 +29,8 @@
   Dsdt.asl
   Ssdt.asl
 
+  TpmSsdt.asl
+
 [Packages]
   MdePkg/MdePkg.dec
   OvmfPkg/OvmfPkg.dec

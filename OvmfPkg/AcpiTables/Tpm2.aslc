@@ -1,0 +1,55 @@
+/*
+ * TPM2 ACPI table for OVMF CRB TPM 2.0.
+ *
+ * TCG ACPI Specification revision 4, StartMethod = 7 (CRB).
+ * ControlArea points to locality 0 base + 0x40 (0xFED40040).
+ *
+ * Copyright (c) 2024, Oxide Computer Company
+ * SPDX-License-Identifier: BSD-2-Clause-Patent
+ */
+
+#include <IndustryStandard/Acpi.h>
+#include <IndustryStandard/Tpm2Acpi.h>
+#include "Platform.h"
+
+#define OVMF_TPM2_SIGNATURE    SIGNATURE_32('T', 'P', 'M', '2')
+#define OVMF_TPM2_OEM_TABLE_ID SIGNATURE_64('O','V','T','P','M','2',' ',' ')
+
+#pragma pack (1)
+typedef struct {
+  EFI_TPM2_ACPI_TABLE  Table;
+  UINT8                StartMethodSpecificParameters[12];
+  UINT32               Laml;
+  UINT64               Lasa;
+} OVMF_TPM2_TABLE;
+#pragma pack ()
+
+OVMF_TPM2_TABLE Tpm2 = {
+  {
+    {
+      OVMF_TPM2_SIGNATURE,
+      sizeof (OVMF_TPM2_TABLE),
+      EFI_TPM2_ACPI_TABLE_REVISION_4,
+      0,                        // Checksum — updated at runtime by AcpiPlatformDxe
+      { EFI_ACPI_OEM_ID },
+      OVMF_TPM2_OEM_TABLE_ID,
+      EFI_ACPI_OEM_REVISION,
+      EFI_ACPI_CREATOR_ID,
+      EFI_ACPI_CREATOR_REVISION
+    },
+    0,              // Flags bits[15:0] = PlatformClass = 0 (client)
+    0xFED40040ULL,  // AddressOfControlArea: locality 0 base + 0x40
+    EFI_TPM2_ACPI_TABLE_START_METHOD_COMMAND_RESPONSE_BUFFER_INTERFACE, // = 7
+  },
+  { 0 },      // StartMethodSpecificParameters[12]: all zeros for CRB
+  0,          // Laml: 0 = no event log (firmware did not populate one)
+  0,          // Lasa: no event log provisioned
+};
+
+VOID *
+ReferenceAcpiTable (
+  VOID
+  )
+{
+  return (VOID *)&Tpm2;
+}

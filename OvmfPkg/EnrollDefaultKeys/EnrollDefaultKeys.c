@@ -571,7 +571,21 @@ ShellAppMain (
   // Exchange Key) from SMBIOS.
   //
   Status = GetPkKek1 (&PkKek1, &SizeOfPkKek1);
-  if (EFI_ERROR (Status)) {
+  if (Status == EFI_NOT_FOUND) {
+    //
+    // No SMBIOS PK/KEK1 provided by the hypervisor.  Fall back to using the
+    // compiled-in Microsoft Windows Production PCA 2011 certificate as the
+    // Platform Key.  This is suitable for development and testing environments
+    // where the hypervisor does not supply a platform-specific certificate.
+    //
+    AsciiPrint ("info: no SMBIOS PK/KEK1 found; using built-in MS PCA as PK\n");
+    PkKek1 = AllocateCopyPool (mSizeOfMicrosoftPca, mMicrosoftPca);
+    if (PkKek1 == NULL) {
+      AsciiPrint ("error: failed to allocate memory for fallback PK\n");
+      return RetVal;
+    }
+    SizeOfPkKek1 = mSizeOfMicrosoftPca;
+  } else if (EFI_ERROR (Status)) {
     return RetVal;
   }
 

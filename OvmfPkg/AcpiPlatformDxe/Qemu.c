@@ -261,8 +261,20 @@ PopulateFwData(
             if (Mmio32MinBase > Desc->BaseAddress) {
               Mmio32MinBase = Desc->BaseAddress;
             }
-            if (Mmio32MaxExclTop < ExclTop) {
-              Mmio32MaxExclTop = ExclTop;
+            {
+              //
+              // Cap the window top at the PCI MMIO ceiling (PciBase + PciSize =
+              // 0xFC000000).  Non-PCI MMIO devices (e.g. TPM CRB at 0xFED40000)
+              // register themselves as MemoryMappedIo and would otherwise inflate
+              // the window beyond 0xFC000000, causing a resource conflict (Code 12)
+              // between _SB.PCI0 and _SB.TPM in Windows.
+              //
+              UINT64 PciCeiling = PcdGet64 (PcdPciMmio32Base) +
+                                  PcdGet64 (PcdPciMmio32Size);
+              UINT64 CappedTop  = MIN (ExclTop, PciCeiling);
+              if (Mmio32MaxExclTop < CappedTop) {
+                Mmio32MaxExclTop = CappedTop;
+              }
             }
             break;
 
